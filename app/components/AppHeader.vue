@@ -12,7 +12,7 @@
       <div class="app-header__actions">
         <slot name="actions">
           <NuxtLink to="/" class="app-header__action">
-            Создать материал
+            <span class="app-header__action-text">Создать материал</span>
           </NuxtLink>
         </slot>
       </div>
@@ -35,10 +35,12 @@
     );
     min-height: var(--header-height);
     margin-inline: auto;
-    padding: var(--space-4) var(--container-padding);
+    padding: var(--space-5) var(--container-padding);
 
     .mobile({
+      min-height: var(--header-mobile-height);
       gap: var(--space-4);
+      padding: var(--space-2) var(--space-4);
     })
   }
 
@@ -68,11 +70,11 @@
     border-radius: var(--radius-button);
     background-color: var(--color-action-background);
     color: var(--color-accent);
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.25;
     text-align: center;
     text-decoration: none;
-    transition: background-color 150ms ease;
+    transition: background-color 0.35s ease-in-out;
 
     &:hover {
       background-color: var(--color-action-hover);
@@ -80,9 +82,26 @@
 
     .mobile({
       height: 48px;
-      padding-inline: var(--space-3);
       font-size: 14px;
+      padding: 10px;
+
+
+      &::before {
+        content: '';
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        background-color: currentColor;
+        -webkit-mask: url('/images/icons/add.svg') center / contain no-repeat;
+        mask: url('/images/icons/add.svg') center / contain no-repeat;
+      }
     })
+  }
+
+  &__action-text {
+    .mobile({
+      display: none;
+    });
   }
 }
 </style>

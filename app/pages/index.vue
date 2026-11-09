@@ -2,47 +2,109 @@
   <div>
     <AppHeader />
 
-    <main class="materials-page">
-      <h1 class="materials-page__title">
-        Lorem ipsum dolor sit amet
-      </h1>
+    <section class="materials" :aria-busy="isLoading">
+      <h2 class="materials__title">
+        Материалы
+      </h2>
 
-      <p class="materials-page__description">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-        Alias autem corporis impedit incidunt porro.
-        Alias aperiam blanditiis dolorem explicabo natus nostrum sequi!
-        Commodi ex ipsam numquam officia perferendis ratione voluptate.
-      </p>
-    </main>
+      <span
+        v-if="isLoading"
+        class="materials__message"
+        role="status"
+      >
+        Загрузка…
+      </span>
+
+      <div v-else class="materials__cards">
+        <template v-if="!!sortedMaterials.length">
+          <MaterialCard
+            v-for="material in sortedMaterials"
+            :key="material.id"
+            :material="material"
+          />
+        </template>
+
+        <span v-else class="materials__message">
+          Пока нет материалов.
+        </span>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-const { data } = await useMaterials()
-console.log('data :', data.value)
-
 useHead({
   title: 'Материалы',
   htmlAttrs: {
     lang: 'ru',
   },
 })
+
+const { data: materials, status, } = await useMaterials()
+const isLoading = computed(() => status.value === 'pending')
+
+const sortedMaterials = computed(() => {
+  return [...materials.value].sort((first, second) => {
+    const dateDiff = Date.parse(second.datetime) - Date.parse(first.datetime)
+
+    if (dateDiff !== 0) {
+      return dateDiff
+    }
+
+    return (first.id < second.id) ? -1 : (first.id > second.id) ? 1 : 0
+  })
+})
 </script>
 
 <style scoped lang="less">
-.materials-page {
-  padding: 48px 24px;
+.materials {
+  width: 100%;
+  max-width: calc(
+    var(--container-width) + var(--container-padding) * 2
+  );
+  margin-inline: auto;
+  padding: var(--space-12) var(--container-padding);
+
+  .mobile({
+    padding: var(--space-8) var(--space-4);
+  });
 
   &__title {
-    margin-bottom: 16px;
-    font-size: 32px;
-    line-height: 1.2;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: var(--space-12);
+
+    .mobile({
+      font-size: 28px;
+      margin-bottom: var(--space-8);
+    });
   }
 
-  &__description {
-    color: var(--color-text);
-    font-size: 18px;
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-10);
+
+    .tablet({
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    });
+
+    .desktop({
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-6);
+    });
+
+    .mobile({
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    });
+  }
+
+  &__message {
+    font-size: 16px;
     line-height: 1.5;
+    color: var(--color-text-muted);
   }
 }
 </style>

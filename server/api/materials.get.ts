@@ -1,3 +1,4 @@
+import { parseMaterials } from '../utils/parseMaterials'
 import type { Material } from '../../shared/types/material'
 
 export default defineEventHandler(
@@ -17,7 +18,8 @@ export default defineEventHandler(
     } catch {
       throw createError({
         statusCode: 502,
-        message: 'Не удалось получить материалы!',
+        statusMessage: 'Failed to load materials',
+        message: 'Не удалось получить материалы. Попробуйте ещё раз.',
       })
     }
 
@@ -26,7 +28,8 @@ export default defineEventHandler(
     } catch {
       throw createError({
         statusCode: 502,
-        message: 'Некорректные данные!',
+        statusMessage: 'Invalid materials response',
+        message: 'Сервис материалов вернул некорректные данные.',
       })
     }
   },
