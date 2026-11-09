@@ -1,19 +1,26 @@
 <template>
-  <main class="materials-page">
-    <h1 class="materials-page__title">
-      Lorem ipsum dolor sit amet
-    </h1>
+  <div>
+    <AppHeader />
 
-    <p class="materials-page__description">
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-      Alias autem corporis impedit incidunt porro.
-      Alias aperiam blanditiis dolorem explicabo natus nostrum sequi!
-      Commodi ex ipsam numquam officia perferendis ratione voluptate.
-    </p>
-  </main>
+    <main class="materials-page">
+      <h1 class="materials-page__title">
+        Lorem ipsum dolor sit amet
+      </h1>
+
+      <p class="materials-page__description">
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+        Alias autem corporis impedit incidunt porro.
+        Alias aperiam blanditiis dolorem explicabo natus nostrum sequi!
+        Commodi ex ipsam numquam officia perferendis ratione voluptate.
+      </p>
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">
+const { data } = await useMaterials()
+console.log('data :', data.value)
+
 useHead({
   title: 'Материалы',
   htmlAttrs: {
