@@ -1,0 +1,21 @@
+@screen-mobile: 600px;
+@screen-tablet: 850px;
+@screen-desktop: 1100px;
+
+.mobile(@rules) {
+  @media (max-width: @screen-mobile) {
+    @rules();
+  }
+}
+
+.tablet(@rules) {
+  @media (max-width: @screen-tablet) {
+    @rules();
+  }
+}
+
+.desktop(@rules) {
+  @media (max-width: @screen-desktop) {
+    @rules();
+  }
+}
