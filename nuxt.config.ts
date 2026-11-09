@@ -4,4 +4,14 @@ export default defineNuxtConfig({
     enabled: true
   },
   css: ['~/assets/styles/main.less'],
+  vite: {
+    css: {
+      preprocessorOptions: {
+        less: {
+          additionalData:
+            '@import (reference) "~/assets/styles/breakpoints.less";\n',
+        },
+      },
+    },
+  },
 })
