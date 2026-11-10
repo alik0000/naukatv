@@ -11,7 +11,7 @@
 
       <div class="app-header__actions">
         <slot name="actions">
-          <NuxtLink to="/" class="app-header__action">
+          <NuxtLink to="/materials/create" class="app-header__action">
             <span class="app-header__action-text">Создать материал</span>
           </NuxtLink>
         </slot>
