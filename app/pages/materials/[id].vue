@@ -53,6 +53,8 @@ if (!material) {
   })
 }
 
+const description = material.short_description || material.title
+
 useHead({
   htmlAttrs: {
     lang: 'ru',
@@ -60,11 +62,11 @@ useHead({
 })
 useSeoMeta({
   title: material.title,
-  description: material.short_description || 'something2',
+  description,
 
   ogType: 'article',
   ogTitle: material.title,
-  ogDescription: material.short_description || 'something',
+  ogDescription: description,
   ogLocale: 'ru_RU',
 
   articlePublishedTime: material.datetime,

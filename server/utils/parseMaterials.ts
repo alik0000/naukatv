@@ -32,7 +32,6 @@ export function parseMaterials(value: unknown): Material[] {
       typeof title !== 'string' ||
       typeof short_description !== 'string' ||
       typeof datetime !== 'string' ||
-      !Number.isFinite(Date.parse(datetime)) ||
       typeof description_html !== 'string'
     ) {
       throw new Error(`Invalid material fields at index ${index}`)

@@ -2,29 +2,70 @@ import { createError } from 'h3'
 import { editorToHtml } from '#shared/utils/editor'
 import { sanitizeDescription, sanitizeInline } from './sanitizeDescription'
 import type { OutputData } from '@editorjs/editorjs'
-import type {
-  CreateMaterialPayload,
-} from '../../shared/types/create-material'
+import type { CreateMaterialPayload } from '../../shared/types/create-material'
+
+const SUPPORTED_BLOCK_TYPES = new Set(['paragraph', 'header', 'quote'])
+const SUPPORTED_HEADER_LEVELS = new Set([1, 2, 3])
+const SUPPORTED_QUOTE_ALIGNMENTS = new Set(['left', 'center'])
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function invalidField(message: string): never {
-  throw createError({
-    statusCode: 422,
-    message,
-  })
+  throw createError({ statusCode: 422, message })
 }
 
-export function parseCreateMaterial(
-  value: unknown,
-): CreateMaterialPayload {
+function parseEditorBlock(value: unknown) {
+  if (!isRecord(value) || !isRecord(value.data)) {
+    invalidField('Некорректный блок редактора.')
+  }
+
+  const { type, data } = value
+
+  if (
+    typeof type !== 'string' ||
+    !SUPPORTED_BLOCK_TYPES.has(type) ||
+    typeof data.text !== 'string'
+  ) {
+    invalidField('Неподдерживаемый блок редактора.')
+  }
+
+  if (
+    type === 'header' &&
+    (typeof data.level !== 'number' || !SUPPORTED_HEADER_LEVELS.has(data.level))
+  ) {
+    invalidField('Допустимы заголовки h1–h3.')
+  }
+
+  if (
+    type === 'quote' &&
+    ((data.caption !== undefined && typeof data.caption !== 'string') ||
+      (data.alignment !== undefined &&
+        !SUPPORTED_QUOTE_ALIGNMENTS.has(String(data.alignment))))
+  ) {
+    invalidField('Некорректная цитата.')
+  }
+
+  return {
+    ...(typeof value.id === 'string' ? { id: value.id } : {}),
+    type,
+    data: {
+      text: sanitizeInline(data.text),
+      ...(type === 'header' ? { level: data.level } : {}),
+      ...(type === 'quote'
+        ? {
+          caption: sanitizeInline(String(data.caption ?? '')),
+          alignment: data.alignment ?? 'left',
+        }
+        : {}),
+    },
+  }
+}
+
+export function parseCreateMaterial(value: unknown): CreateMaterialPayload {
   if (!isRecord(value)) {
-    throw createError({
-      statusCode: 400,
-      message: 'Некорректное тело запроса.',
-    })
+    throw createError({ statusCode: 400, message: 'Некорректное тело запроса.' })
   }
 
   const {
@@ -55,10 +96,7 @@ export function parseCreateMaterial(
 
   const date = new Date(datetime)
 
-  if (
-    !Number.isFinite(date.getTime()) ||
-    date.toISOString() !== datetime
-  ) {
+  if (!Number.isFinite(date.getTime()) || date.toISOString() !== datetime) {
     invalidField('Указана некорректная дата.')
   }
 
@@ -66,40 +104,19 @@ export function parseCreateMaterial(
     invalidField('HTML материала должен быть строкой.')
   }
 
-  if (
-    !isRecord(description_json) || !Array.isArray(description_json.blocks)
-  ) {
+  if (!isRecord(description_json) || !Array.isArray(description_json.blocks)) {
     invalidField('Некорректный JSON документа.')
   }
 
-  const blocks = description_json.blocks.map((block: unknown) => {
-    if (!isRecord(block) || !isRecord(block.data)) invalidField('Некорректный блок редактора.')
-    const { type, data } = block
-    if (!['paragraph', 'header', 'quote'].includes(String(type)) || typeof data.text !== 'string') {
-      invalidField('Неподдерживаемый блок редактора.')
-    }
-    if (type === 'header' && (typeof data.level !== 'number' || ![1, 2, 3].includes(data.level))) {
-      invalidField('Допустимы заголовки h1–h3.')
-    }
-    if (type === 'quote' && (
-      (data.caption !== undefined && typeof data.caption !== 'string') ||
-      (data.alignment !== undefined && !['left', 'center'].includes(String(data.alignment)))
-    )) invalidField('Некорректная цитата.')
-
-    return {
-      ...(typeof block.id === 'string' ? { id: block.id } : {}),
-      type: String(type),
-      data: {
-        text: sanitizeInline(data.text),
-        ...(type === 'header' ? { level: Number(data.level) } : {}),
-        ...(type === 'quote' ? { caption: sanitizeInline(String(data.caption ?? '')), alignment: data.alignment ?? 'left' } : {}),
-      },
-    }
-  })
   const document: OutputData = {
-    blocks,
-    ...(typeof description_json.time === 'number' && Number.isFinite(description_json.time) ? { time: description_json.time } : {}),
-    ...(typeof description_json.version === 'string' ? { version: description_json.version } : {}),
+    blocks: description_json.blocks.map(parseEditorBlock),
+    ...(typeof description_json.time === 'number' &&
+    Number.isFinite(description_json.time)
+      ? { time: description_json.time }
+      : {}),
+    ...(typeof description_json.version === 'string'
+      ? { version: description_json.version }
+      : {}),
   }
 
   return {
