@@ -8,7 +8,9 @@
           form="material-create-form"
           :disabled="isLoading"
         >
-          Сохранить
+          <span class="material-create__submit-text">
+            Сохранить
+          </span>
         </button>
       </template>
     </AppHeader>
@@ -157,11 +159,20 @@ useSeoMeta({
   margin-inline: auto;
   padding: var(--space-12) var(--space-6);
 
+  .mobile({
+    padding: var(--space-8) var(--space-4);
+  });
+
   &__header {
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
     margin-bottom: var(--space-12);
+
+    .mobile({
+      gap: var(--space-4);
+      margin-bottom: var(--space-8);
+    })
   }
 
   &__title {
@@ -170,30 +181,51 @@ useSeoMeta({
     overflow-wrap: anywhere;
 
     .mobile({
-      margin-bottom: var(--space-8);
-      font-size: 26px;
+      font-size: 24px;
     });
   }
 
   &__submit {
-    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: var(--space-2) var(--space-6);
     border: 0;
     border-radius: var(--radius-button);
     background-color: var(--color-action-background);
     color: var(--color-accent);
-
-    &:hover {
-      background-color: var(--color-action-hover);
-    }
+    text-decoration: none;
+    transition: background-color 0.35s ease-in-out;
 
     &:disabled {
       opacity: 0.6;
     }
 
+    &:hover {
+      background-color: var(--color-action-hover);
+    }
+
     .mobile({
-      padding-inline: var(--space-3);
+      height: 48px;
       font-size: 14px;
+      padding: 10px;
+
+
+      &::before {
+        content: '';
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        background-color: currentColor;
+        -webkit-mask: url('/images/icons/send.svg') center / contain no-repeat;
+        mask: url('/images/icons/send.svg') center / contain no-repeat;
+      }
+    })
+  }
+
+  &__submit-text {
+    .mobile({
+      display: none;
     });
   }
 
@@ -221,6 +253,11 @@ useSeoMeta({
   border-radius: var(--radius-article);
   background-color: var(--color-surface);
 
+  .mobile({
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-4);
+  });
+
   &__fields {
     display: flex;
     flex-direction: column;
@@ -229,6 +266,7 @@ useSeoMeta({
 
     .mobile({
       padding-left: 0;
+      gap: var(--space-3);
     });
   }
 
@@ -264,15 +302,5 @@ useSeoMeta({
     font-size: 22px;
     line-height: 1;
   }
-
-  .mobile({
-    &__field-title {
-      font-size: 28px;
-    }
-
-    &__field-description {
-      font-size: 20px;
-    }
-  });
 }
 </style>

@@ -160,6 +160,10 @@ defineExpose({ save })
   height: 340px;
   overflow-y: auto;
 
+  .mobile({
+    height: 440px;
+  });
+
   &__error {
     margin: var(--space-3) 0;
     color: var(--color-error);

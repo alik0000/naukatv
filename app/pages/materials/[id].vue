@@ -81,37 +81,38 @@ useSeoMeta({
   padding: var(--space-12) var(--container-padding);
 
   .mobile({
-    padding-block: var(--space-6);
+    padding: var(--space-8) var(--space-4);
   });
 
   &__article {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
     margin-top: var(--space-8);
     padding: var(--article-padding);
     border-radius: var(--radius-article);
     background-color: var(--color-surface);
 
     .mobile({
-      margin-top: var(--space-6);
-      padding: var(--space-6);
+      margin-top: var(--space-8);
+      padding: var(--space-6) var(--space-4);
       border-radius: var(--radius-card);
+      gap: var(--space-6);
     });
   }
 
   &__title {
-    margin-top: var(--space-8);
     font-size: 32px;
     font-weight: 700;
     line-height: 1.3;
     overflow-wrap: anywhere;
 
     .mobile({
-      margin-top: var(--space-6);
-      font-size: 26px;
+      font-size: 24px;
     });
   }
 
   &__short-description {
-    margin-top: var(--space-6);
     font-size: 20px;
     font-weight: 700;
     line-height: 1.4;
@@ -124,8 +125,6 @@ useSeoMeta({
   }
 
   &__content {
-    margin-top: var(--space-9);
-
     :deep(blockquote) {
       margin-inline: 0;
       padding-left: var(--space-6);
