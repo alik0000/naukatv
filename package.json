@@ -17,7 +17,8 @@
     "@editorjs/quote": "^2.7.6",
     "nuxt": "^4.6.4",
     "vue": "^3.5.45",
-    "vue-router": "^5.4.0"
+    "vue-router": "^5.4.0",
+    "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
     "less": "^4.9.1",

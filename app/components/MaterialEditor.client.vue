@@ -1,6 +1,9 @@
 <template>
   <div class="material-editor">
     <div ref="holder" />
+    <p v-if="initializationError" class="material-editor__error" role="alert">
+      {{ initializationError }}
+    </p>
   </div>
 </template>
 
@@ -59,6 +62,7 @@ const props = defineProps<{
 }>()
 
 const holder = ref<HTMLDivElement | null>(null)
+const initializationError = ref('')
 
 let editor: EditorJS | undefined
 let ready = false
@@ -108,20 +112,30 @@ const initEditor = async () => {
     await editor.isReady
 
     if (disposed) {
-      editor.destroy()
+      destroyEditor()
       return
     }
 
     ready = true
   } catch (error) {
     console.error('Ошибка при инициализации EditorJS:', error)
+    if (!disposed) {
+      initializationError.value = 'Не удалось загрузить редактор. Обновите страницу.'
+    }
+    destroyEditor()
   }
 }
 const destroyEditor = () => {
   disposed = true
 
-  if (editor && ready) {
+  if (!editor) return
+
+  try {
     editor.destroy()
+  } catch (error) {
+    console.error('Ошибка при очистке EditorJS:', error)
+  } finally {
+    editor = undefined
     ready = false
   }
 }
@@ -145,6 +159,11 @@ defineExpose({ save })
 .material-editor {
   height: 340px;
   overflow-y: auto;
+
+  &__error {
+    margin: var(--space-3) 0;
+    color: var(--color-error);
+  }
 
   .codex-editor {
     .codex-editor__redactor {

@@ -24,7 +24,7 @@ export default defineEventHandler(
     }
 
     try {
-      return response as Material[] //::TODO исправить
+      return parseMaterials(response)
     } catch {
       throw createError({
         statusCode: 502,

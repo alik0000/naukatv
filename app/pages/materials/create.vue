@@ -6,9 +6,9 @@
           class="material-create__submit"
           type="submit"
           form="material-create-form"
-          :disabled="isSubmitting || submissionFinished"
+          :disabled="isLoading"
         >
-          {{ isSubmitting ? 'Сохранение…' : 'Сохранить' }}
+          Сохранить
         </button>
       </template>
     </AppHeader>
@@ -24,9 +24,8 @@
 
       <form
         id="material-create-form"
-        novalidate
-        :aria-busy="isSubmitting"
         class="material-create-form"
+        :aria-busy="isLoading"
         @submit.prevent="handleSubmit"
       >
         <div class="material-create-form__fields">
@@ -36,8 +35,11 @@
               class="material-create-form__field-title"
               name="title"
               type="text"
+              required
               placeholder="Введите заголовок"
-              :maxlength="TITLE_MAX_LENGTH"
+              aria-label="Заголовок материала"
+              :maxlength="80"
+              :disabled="isLoading"
             >
           </div>
 
@@ -47,154 +49,103 @@
               class="material-create-form__field-description"
               name="short_description"
               placeholder="Введите краткое описание..."
-              :maxlength="DESCRIPTION_MAX_LENGTH"
+              aria-label="Краткое описание"
+              :maxlength="255"
+              required
+              :disabled="isLoading"
             />
           </div>
         </div>
 
-        <MaterialEditor ref="materialEditor" />
+        <MaterialEditor ref="materialEditor" :inert="isLoading" />
       </form>
+
+      <div
+        v-if="submitError"
+        class="material-create__error"
+        role="alert"
+      >
+        {{ submitError }}
+      </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { EditorValue } from '../../../shared/types/editor'
-import {
-  localDatetimeToIso,
-  toLocalDatetimeInput,
-} from '../../utils/datetime'
-import type {
-  CreateMaterialPayload,
-} from '../../../shared/types/create-material'
+import type { MaterialEditorHandle } from '../../../shared/types/editor'
+import type { CreateMaterialPayload } from '../../../shared/types/create-material'
+import { editorToHtml } from '../../../shared/utils/editor'
+
+const title = ref('')
+const shortDescription = ref('')
+const isLoading = ref(false)
+const submitError = ref('')
+const materialEditorRef = useTemplateRef<MaterialEditorHandle>('materialEditor')
+
+const NOTIFICATION_DURATION = 5000
+let notificationTimer: ReturnType<typeof setTimeout> | undefined
+
+const clearError = () => {
+  clearTimeout(notificationTimer)
+  submitError.value = ''
+}
+
+const showError = (message: string) => {
+  clearError()
+  submitError.value = message
+  notificationTimer = setTimeout(clearError, NOTIFICATION_DURATION)
+}
+
+const saveMaterial = async () => {
+  const editor = materialEditorRef.value
+
+  if (!editor) {
+    throw new Error('Редактор ещё не готов.')
+  }
+
+  const document = await editor.save()
+  const payload: CreateMaterialPayload = {
+    title: title.value.trim(),
+    short_description: shortDescription.value.trim(),
+    datetime: new Date().toISOString(),
+    description_html: editorToHtml(document),
+    description_json: document,
+  }
+
+  return $fetch('/api/materials', {
+    method: 'POST',
+    body: payload,
+    retry: 0,
+  })
+}
+
+const handleSubmit = async () => {
+  if (isLoading.value) return
+
+  clearError()
+  isLoading.value = true
+
+  try {
+    const material = await saveMaterial()
+    await navigateTo(`/materials/${encodeURIComponent(material.id)}`)
+  } catch {
+    showError('Не удалось сохранить или открыть материал. Попробуйте ещё раз.')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onBeforeUnmount(() => clearTimeout(notificationTimer))
 
 useHead({
   title: 'Создание материала',
   htmlAttrs: {
-    lang: 'ru',
-  },
+    lang: 'ru'
+  }
 })
-
-const TITLE_MAX_LENGTH = 80
-const DESCRIPTION_MAX_LENGTH = 255
-
-const isSubmitting = ref(false)
-const submissionFinished = ref(false)
-const submitError = ref('')
-const title = ref('')
-const shortDescription = ref('')
-const datetime = ref('')
-const editorValue = shallowRef<EditorValue | null>(null)
-const createdMaterialId = ref<string | null>(null)
-const isOpeningMaterial = ref(false)
-const materialEditorRef = useTemplateRef('materialEditor')
-
-const validationMessage = ref('')
-
-onMounted(() => {
-  datetime.value = toLocalDatetimeInput(new Date())
+useSeoMeta({
+  robots: 'noindex'
 })
-
-const {
-  data: materials,
-  error: materialsError,
-  refresh: refreshMaterials,
-} = await useMaterials()
-
-async function handleSubmit() {
-  if (isSubmitting.value || submissionFinished.value) {
-    return
-  }
-
-  validationMessage.value = ''
-  submitError.value = ''
-
-  const isoDatetime = localDatetimeToIso(datetime.value)
-  const document = editorValue.value
-
-  if (!isoDatetime || !document) {
-    return
-  }
-
-  const payload: CreateMaterialPayload = {
-    title: title.value,
-    short_description: shortDescription.value,
-    datetime: isoDatetime,
-    description_html: document.html,
-    description_json: {
-      type: 'doc',
-      content: document.json.content ?? [],
-    },
-  }
-
-  isSubmitting.value = true
-
-  try {
-    const response = await $fetch('/api/materials', {
-      method: 'POST',
-      body: payload,
-      retry: 0,
-    })
-
-    createdMaterialId.value = response.id
-    submissionFinished.value = true
-
-    validationMessage.value = 'Материал сохранён. Открываем страницу…'
-
-    await openCreatedMaterial()
-  } catch (error: unknown) {
-    const statusCode =
-      typeof error === 'object' &&
-      error !== null &&
-      'statusCode' in error
-        ? error.statusCode
-        : undefined
-
-    submitError.value =
-      statusCode === 422
-        ? 'Сервер отклонил сохранение. Проверьте поля формы.'
-        : 'Не удалось подтвердить сохранение. Проверьте список перед повторной отправкой.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-async function openCreatedMaterial() {
-  if (!createdMaterialId.value || isOpeningMaterial.value) {
-    return
-  }
-
-  isOpeningMaterial.value = true
-  submitError.value = ''
-
-  try {
-    await refreshMaterials()
-
-    if (materialsError.value) {
-      throw new Error('Failed to refresh materials')
-    }
-
-    const material = materials.value.find(
-      item => item.id === createdMaterialId.value,
-    )
-
-    if (!material) {
-      validationMessage.value =
-        'Материал сохранён, но пока не появился в списке. Повторите открытие через несколько секунд.'
-
-      return
-    }
-
-    await navigateTo(
-      `/materials/${encodeURIComponent(material.id)}`,
-    )
-  } catch {
-    submitError.value =
-      'Материал сохранён, но открыть его не удалось. Повторите открытие — заново сохранять форму не нужно.'
-  } finally {
-    isOpeningMaterial.value = false
-  }
-}
 </script>
 
 <style scoped lang="less">
@@ -243,20 +194,24 @@ async function openCreatedMaterial() {
     .mobile({
       padding-inline: var(--space-3);
       font-size: 14px;
-    })
+    });
   }
-}
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
+  &__error {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-6);
+    z-index: 1000;
+    width: max-content;
+    max-width: calc(100% - var(--space-6) * 2);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-button);
+    background-color: var(--color-surface);
+    color: var(--color-error);
+    text-align: center;
+    transform: translateX(-50%);
+  }
 }
 
 .material-create-form {
@@ -271,6 +226,10 @@ async function openCreatedMaterial() {
     flex-direction: column;
     gap: var(--space-6);
     padding-left: 106px;
+
+    .mobile({
+      padding-left: 0;
+    });
   }
 
   &__field-title,
