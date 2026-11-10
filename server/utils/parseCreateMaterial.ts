@@ -1,5 +1,5 @@
 import { createError } from 'h3'
-import { editorToHtml } from '../../shared/utils/editor'
+import { editorToHtml } from '#shared/utils/editor'
 import { sanitizeDescription, sanitizeInline } from './sanitizeDescription'
 import type { OutputData } from '@editorjs/editorjs'
 import type {

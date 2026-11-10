@@ -15,6 +15,21 @@
         Загрузка…
       </span>
 
+      <div
+        v-else-if="error"
+        class="materials__message"
+        role="alert"
+      >
+        <p>Не удалось загрузить материалы.</p>
+        <button
+          class="materials__retry"
+          type="button"
+          @click="refresh()"
+        >
+          Повторить
+        </button>
+      </div>
+
       <div v-else class="materials__cards">
         <template v-if="!!sortedMaterials.length">
           <MaterialCard
@@ -40,7 +55,7 @@ useHead({
   },
 })
 
-const { data: materials, status, } = await useMaterials()
+const { data: materials, status, error, refresh } = await useMaterials()
 const isLoading = computed(() => status.value === 'pending')
 
 const sortedMaterials = computed(() => {
@@ -105,6 +120,22 @@ const sortedMaterials = computed(() => {
     font-size: 16px;
     line-height: 1.5;
     color: var(--color-text-muted);
+  }
+
+  &__retry {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-accent);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 3px;
+    }
   }
 }
 </style>

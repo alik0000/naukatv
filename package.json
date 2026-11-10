@@ -16,13 +16,14 @@
     "@editorjs/header": "^2.8.9",
     "@editorjs/quote": "^2.7.6",
     "nuxt": "^4.6.4",
+    "sanitize-html": "^2.18.1",
     "vue": "^3.5.45",
-    "vue-router": "^5.4.0",
-    "sanitize-html": "^2.18.1"
+    "vue-router": "^5.4.0"
   },
   "devDependencies": {
+    "@types/sanitize-html": "^2.16.2",
     "less": "^4.9.1",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "vue-tsc": "^3.3.14"
   }
 }

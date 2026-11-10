@@ -74,9 +74,9 @@
 </template>
 
 <script setup lang="ts">
-import type { MaterialEditorHandle } from '../../../shared/types/editor'
-import type { CreateMaterialPayload } from '../../../shared/types/create-material'
-import { editorToHtml } from '../../../shared/utils/editor'
+import type { MaterialEditorHandle } from '#shared/types/editor'
+import type { CreateMaterialPayload } from '#shared/types/create-material'
+import { editorToHtml } from '#shared/utils/editor'
 
 const title = ref('')
 const shortDescription = ref('')
