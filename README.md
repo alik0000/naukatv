@@ -1,75 +1,51 @@
-# Nuxt Minimal Starter
+# Наука ТВ — материалы
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Тестовое приложение на Nuxt 4, Vue 3 и Less. Оно показывает список материалов, открывает материал по ID и позволяет создать новый материал с помощью Editor.js.
 
-## Setup
+## Запуск
 
-Make sure to install dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Требуется Node.js `^22.22.3`, `^24.15.0` или `>=26.0.0` (ограничение Nuxt 4.6.4).
 
 ```bash
-# npm
+npm ci
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+После запуска откройте `http://localhost:3000`.
 
-Build the application for production:
+Проверка типов и production-сборка:
 
 ```bash
-# npm
+npm run typecheck
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+Для локального просмотра production-сборки:
 
 ```bash
-# npm
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Команда `npm run check` запускает проверку типов и production-сборку.
+
+## Страницы
+
+- `/` — список материалов, отсортированный от новых к старым.
+- `/materials/:id` — детальная страница материала.
+- `/materials/create` — форма создания материала.
+
+В редакторе доступны параграф, заголовки h1–h3 и цитата. При сохранении на сервер отправляются HTML и JSON редактора.
+
+## Получение данных детальной страницы
+
+У API нет отдельного эндпоинта для материала по ID. Поэтому приложение загружает общий список через `GET /api/materials`, а на детальной странице находит в нём запись с ID из маршрута. Это использует предусмотренный API способ и даёт одинаковую форму данных для списка и детальной страницы.
+
+## Проверка длины полей
+
+Для заголовка установлены `required` и `maxlength="80"`, для краткого описания — `required` и `maxlength="255"`. Атрибуты ограничивают ввод в браузере. Сервер повторно проверяет данные в `server/utils/parseCreateMaterial.ts`: заголовок должен быть непустым после удаления пробелов и не длиннее 80 символов; краткое описание — не длиннее 255 символов. Серверная проверка также применяется к запросам, отправленным в обход формы.
+
+## CORS
+
+Внешний API не разрешает браузерные запросы с `localhost`. Браузер обращается к одноимённому origin приложения: `GET /api/materials` и `POST /api/materials`. Nuxt-обработчики в `server/api/materials.get.ts` и `server/api/materials.post.ts` выполняют запросы к `https://naukatv.ru/api/test/materials/kurbanov` на сервере через `$fetch`. Поэтому браузер не вызывает внешний API напрямую, и CORS-блокировка не возникает.
+
+Alias `kurbanov` и базовый адрес API заданы в `nuxt.config.ts`.

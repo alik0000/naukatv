@@ -3,6 +3,10 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true
   },
+  runtimeConfig: {
+    materialsApiBase: 'https://naukatv.ru/api/test/materials',
+    materialsApiAlias: 'kurbanov',
+  },
   css: ['~/assets/styles/main.less'],
   vite: {
     css: {
